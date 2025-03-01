@@ -13,4 +13,4 @@
 /dataSources.local.xml
 
 # Sqlite db
-/todo.db
+*.db*

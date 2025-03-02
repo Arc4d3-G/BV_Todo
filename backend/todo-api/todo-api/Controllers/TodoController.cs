@@ -1,87 +1,115 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using todo_api.Data;
+using todo_api.DTO;
 using todo_api.Models;
 
 namespace todo_api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class TodoController : ControllerBase
 {
-   private readonly TodoContext _context;
+    private readonly TodoContext _context;
 
-   public TodoController(TodoContext context)
-   {
-      _context = context;
-      
-   }
+    public TodoController(TodoContext context)
+    {
+        _context = context;
+    }
 
-   // Get User Todos
-   [HttpGet("{userId}")]
-   public async Task<ActionResult<IEnumerable<TodoItem>>> GetUserTodos(int userId)
-   {
-       return await _context.TodoItems.Where(t => t.UserId == userId).ToListAsync();
-   }
-   
-   // Post Create new todoItem
-   [HttpPost()]
-   public async Task<ActionResult<TodoItem>> CreateTodoItem(TodoItem todo)
-   {
-       var user = await _context.Users.FindAsync(todo.UserId);
-       if (user == null)
-       {
-           return BadRequest("User not found");
-       }
+    // Get User Todos
+    [HttpGet("me")]
+    public async Task<ActionResult<IEnumerable<TodoItem>>> GetUserTodos()
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        var todos = await _context.TodoItems.Where(t => t.UserId == userId).Select(t => new TodoItemDTO
+        {
+            Title = t.Title,
+            IsComplete = t.IsComplete,
+            Id = t.Id
+        }).ToListAsync();
 
-       _context.TodoItems.Add(todo);
-       await _context.SaveChangesAsync();
+        if (todos == null || !todos.Any())
+        {
+            return NotFound("No todos found.");
+        }
 
-       return CreatedAtAction(nameof(GetUserTodos), new { userId = todo.UserId }, todo);
-   }
-   
-   // Update todoItem
-   [HttpPut("{id}")]
-   public async Task<IActionResult> UpdateTodoItem(int id, TodoItem updatedTodo)
-   {
-       var existingTodo = await _context.TodoItems.FindAsync(id);
-   
-       if (existingTodo == null)
-       {
-           return NotFound("Todo not found");
-       }
-   
-       if (existingTodo.UserId != updatedTodo.UserId)
-       {
-           return Unauthorized("Todo does not belong to user");
-       }
+        return Ok(todos);
+    }
 
-       existingTodo.Title = updatedTodo.Title;
-       existingTodo.IsComplete = updatedTodo.IsComplete;
-       
-       await _context.SaveChangesAsync();
-       return NoContent();
-   }
+    // Post Create new todoItem
+    [HttpPost]
+    public async Task<ActionResult<TodoItem>> CreateTodoItem(TodoItemDTO todoDto)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
-   // Delete todoItem
-   [HttpDelete("{id}")]
-   public async Task<IActionResult> DeleteTodoItem(int id, int userId)
-   {
-       var todo = await _context.TodoItems.FindAsync(id);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return BadRequest("User not found");
+        }
 
-       if (todo == null)
-       {
-           return NotFound();
-       }
+        var todo = new TodoItem
+        {
+            Title = todoDto.Title,
+            IsComplete = todoDto.IsComplete,
+            UserId = userId,
+            User = user
+        };
 
-       if (todo.UserId != userId)
-       {
-           return Unauthorized();
-       }
+        _context.TodoItems.Add(todo);
+        await _context.SaveChangesAsync();
 
-       _context.TodoItems.Remove(todo);
-       await _context.SaveChangesAsync();
-       
-       return NoContent();
-   }
+        return CreatedAtAction(nameof(GetUserTodos), new { userId = todo.UserId }, todo);
+    }
+
+    // Update todoItem
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateTodoItem(int id, TodoItemDTO updatedTodoDto)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        var existingTodo = await _context.TodoItems.FindAsync(id);
+
+        if (existingTodo == null)
+        {
+            return NotFound("Todo not found");
+        }
+
+        if (existingTodo.UserId != userId)
+        {
+            return Unauthorized("Todo does not belong to the authenticated user");
+        }
+
+        existingTodo.Title = updatedTodoDto.Title;
+        existingTodo.IsComplete = updatedTodoDto.IsComplete;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // Delete todoItem
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteTodoItem(int id)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        var todo = await _context.TodoItems.FindAsync(id);
+
+        if (todo == null)
+        {
+            return NotFound("Todo not found");
+        }
+
+        if (todo.UserId != userId)
+        {
+            return Unauthorized("Todo does not belong to the authenticated user");
+        }
+
+        _context.TodoItems.Remove(todo);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }

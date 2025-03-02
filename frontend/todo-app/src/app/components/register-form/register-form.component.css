@@ -1,0 +1,49 @@
+/* :host {
+  display: flex;
+  justify-content: center;
+  margin: 100px 0px;
+} */
+
+mat-form-field {
+  mat-error {
+    display: none !important;
+  }
+
+  mat-error:first-child {
+    display: block !important;
+  }
+}
+
+mat-form-field {
+  width: 100%;
+  /* min-width: 300px; */
+}
+
+mat-form-field:has(mat-error) {
+  margin-bottom: 20px;
+}
+
+/* mat-card-title {
+  margin: 10px;
+} */
+
+/* mat-card-title,
+mat-card-content {
+  display: flex;
+  justify-content: center;
+} */
+
+.field-flex {
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  width: 100%;
+}
+
+.error {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}

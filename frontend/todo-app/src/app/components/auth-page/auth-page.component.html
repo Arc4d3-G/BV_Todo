@@ -1,0 +1,19 @@
+<mat-card appearance="outlined">
+  <mat-card-title>{{ isRegistering ? "Register" : "Login" }}</mat-card-title>
+  <mat-card-content>
+    <app-login-form
+      *ngIf="!isRegistering"
+      (loginSuccess)="onLoginSuccess()"
+    ></app-login-form>
+    <app-register-form
+      *ngIf="isRegistering"
+      (registrationSuccess)="onRegistrationSuccess()"
+    ></app-register-form>
+    <div class="toggle-container">
+      {{ isRegistering ? "Already have an account? " : "New user? " }}
+      <span (click)="toggleForm()" class="toggle-link">
+        {{ isRegistering ? "Login" : "Create an account" }}
+      </span>
+    </div>
+  </mat-card-content>
+</mat-card>

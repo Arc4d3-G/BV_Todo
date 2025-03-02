@@ -28,7 +28,12 @@ public class UserController : ControllerBase
         try
         {
             var user = await _userService.RegisterUser(request.Email, request.Password, request.Username);
-            return CreatedAtAction(nameof(Login), new { username = user.Username }, user);
+            return CreatedAtAction(nameof(Login), new { username = user.Username }, new
+            {
+                user.Id,
+                user.Username,
+                user.Email
+            });
         }
         catch (InvalidOperationException ex)
         {
@@ -49,7 +54,7 @@ public class UserController : ControllerBase
             return BadRequest("Invalid request.");
         }
 
-        var token = await _userService.LoginUser(request.Login, request.Password);
+        var token = await _userService.LoginUser(request.Email, request.Password);
 
         if (token == null)
         {
@@ -85,7 +90,7 @@ public class UserController : ControllerBase
     // Request model for login
     public class LoginRequest
     {
-        public string Login { get; set; } // Either username or email
+        public string Email { get; set; }
         public string Password { get; set; }
     }
 }

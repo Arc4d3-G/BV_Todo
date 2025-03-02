@@ -94,9 +94,9 @@ public class UserService
     } 
     
     // Login User
-    public async Task<string?> LoginUser(string login, string password)
+    public async Task<string?> LoginUser(string email, string password)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == login || u.Email == login);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {

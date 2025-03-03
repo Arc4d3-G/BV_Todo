@@ -1,0 +1,74 @@
+<mat-card appearance="outlined">
+  <mat-card-title>To Do List</mat-card-title>
+  <mat-card-content>
+    <!-- Input for adding new todo items -->
+    <div class="input-container">
+      <mat-form-field appearance="outline">
+        <mat-label>Add Todo</mat-label>
+        <input
+          matInput
+          placeholder="New Todo"
+          [(ngModel)]="newTodoTitle"
+          (keyup.enter)="addTodo()"
+        />
+      </mat-form-field>
+      <button
+        mat-fab
+        color="primary"
+        aria-label="Add"
+        color="primary"
+        (click)="addTodo()"
+      >
+        <mat-icon>add_circle_outline</mat-icon>
+      </button>
+    </div>
+
+    <!-- Pending Items -->
+    <mat-card-subtitle>Pending</mat-card-subtitle>
+    <mat-list *ngIf="pendingTodos.length > 0; else noPending">
+      <mat-list-item *ngFor="let todo of pendingTodos">
+        <div class="item-container">
+          <div class="title-container">
+            <mat-checkbox
+              [checked]="todo.isComplete"
+              (change)="toggleComplete(todo)"
+            ></mat-checkbox>
+            <span class="todo-title" [class.completed]="todo.isComplete">
+              {{ todo.title }}
+            </span>
+          </div>
+          <button mat-icon-button color="warn" (click)="deleteTodo(todo.id)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </mat-list-item>
+    </mat-list>
+    <ng-template #noPending>
+      <p>No pending tasks</p>
+    </ng-template>
+
+    <!-- Completed Items -->
+    <mat-card-subtitle>Completed</mat-card-subtitle>
+    <mat-list *ngIf="completedTodos.length > 0; else noCompleted">
+      <mat-list-item *ngFor="let todo of completedTodos">
+        <div class="item-container">
+          <div class="title-container">
+            <mat-checkbox
+              [checked]="todo.isComplete"
+              (change)="toggleComplete(todo)"
+            ></mat-checkbox>
+            <span class="todo-title completed">
+              {{ todo.title }}
+            </span>
+          </div>
+          <button mat-icon-button color="warn" (click)="deleteTodo(todo.id)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </mat-list-item>
+    </mat-list>
+    <ng-template #noCompleted>
+      <p>No completed tasks yet</p>
+    </ng-template>
+  </mat-card-content>
+</mat-card>

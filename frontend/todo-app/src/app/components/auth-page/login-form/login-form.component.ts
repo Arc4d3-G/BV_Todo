@@ -1,4 +1,4 @@
-import { AuthService } from './../../services/auth.service';
+import { AuthService } from '../../../services/auth.service';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -42,11 +42,11 @@ export class LoginFormComponent {
         .subscribe({
           next: (response) => {
             localStorage.setItem('token', response.token);
-            console.log({ atLoginForm: `Login Success: ${response.token}` });
             this.loginSuccess.emit();
           },
           error: (err) => {
-            this.error = err.error || 'Invalid credentials';
+            console.error({ ErrorAtLogin: err });
+            this.error = err.message || 'Invalid credentials';
           },
         });
     }

@@ -1,3 +1,4 @@
+import { AuthService } from '../../../services/auth.service';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -12,7 +13,6 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
-import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-register-form',
@@ -94,7 +94,7 @@ export class RegisterFormComponent {
           this.registrationSuccess.emit();
         },
         error: (err) => {
-          this.error = err.error || 'Registration failed';
+          this.error = err.message || 'Registration failed';
         },
       });
     }

@@ -1,6 +1,3 @@
-<!-- <mat-card>
-  <mat-card-title>Register</mat-card-title>
-  <mat-card-content> -->
 <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
   <div>
     <mat-form-field appearance="outline">
@@ -65,9 +62,5 @@
     <mat-error *ngIf="error">{{ error }}</mat-error>
   </div>
 
-  <!-- <div class="submit-button"> -->
   <button mat-stroked-button color="primary" type="submit">Register</button>
-  <!-- </div> -->
 </form>
-<!-- </mat-card-content>
-</mat-card> -->

@@ -1,7 +1,6 @@
 :host {
   display: flex;
   justify-content: center;
-  margin: 100px 0px;
 }
 mat-card {
   margin: 20px;
@@ -36,19 +35,24 @@ mat-form-field:has(mat-error) {
 
 .input-container {
   display: flex;
-  /* align-items: baseline; */
   gap: 10px;
   width: 100%;
   justify-content: center;
-  /* margin-bottom: 20px; */
 }
 
 .item-container {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
-mat-list-item:hover {
-  /* background-color: var(--mat-sys-surface); */
+.list-item {
+  margin-bottom: 5px;
+  padding: 5px;
+}
+
+.todo-title {
+  white-space: normal;
 }
 
 .title-container {

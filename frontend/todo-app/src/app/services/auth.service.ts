@@ -4,49 +4,63 @@ import {
   HttpHeaders,
   HttpErrorResponse,
 } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:5014/api/user'; // Adjust if needed
+  private apiUrl = environment.apiUrl + '/user';
+  private loggedIn = new BehaviorSubject<boolean>(false);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
+  // Expose the current todos state as an observable
+  get isLoggedIn$(): Observable<boolean> {
+    return this.loggedIn.asObservable();
+  }
   // Register a new user
   register(email: string, password: string, username: string): Observable<any> {
     return this.http
       .post(`${this.apiUrl}/register`, { email, password, username })
-      .pipe(
-        catchError(this.handleError) // Handle errors
-      );
+      .pipe(catchError(this.handleError));
   }
 
   // Login user
   login(email: string, password: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, { email, password }).pipe(
-      catchError(this.handleError) // Handle errors
+      tap((response: any) => {
+        localStorage.setItem('token', response.token);
+        this.loggedIn.next(true);
+      }),
+      catchError(this.handleError)
     );
   }
 
   // Get current authenticated user
   getCurrentUser(): Observable<any> {
-    const token = localStorage.getItem('token'); // Retrieve token
+    const token = localStorage.getItem('token');
     if (!token) {
       return throwError(() => new Error('No token found'));
     }
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.get(`${this.apiUrl}/me`, { headers }).pipe(
-      catchError(this.handleError) // Handle errors
+      tap(() => {
+        this.loggedIn.next(true);
+      }),
+      catchError(this.handleError)
     );
   }
 
   // Logout user
   logout(): void {
-    localStorage.removeItem('token'); // Remove token from storage
+    localStorage.removeItem('token');
+    this.loggedIn.next(false);
+    this.router.navigate(['/login']);
   }
 
   // Handle HTTP errors

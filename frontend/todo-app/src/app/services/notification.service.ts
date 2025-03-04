@@ -10,9 +10,9 @@ export class NotificationService {
   show(message: string, action: string = 'OK', duration: number = 3000): void {
     this.snackBar.open(message, action, {
       duration: duration,
-      verticalPosition: 'bottom', // 'top' or 'bottom'
-      horizontalPosition: 'center', // 'start', 'center', 'end', 'left', 'right'
-      panelClass: ['snackbar-success'], // You can define styles in global styles.css
+      verticalPosition: 'bottom',
+      horizontalPosition: 'center',
+      panelClass: ['snackbar-success'],
     });
   }
 

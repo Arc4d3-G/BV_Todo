@@ -1,0 +1,15 @@
+mat-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.app-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--mat-sys-primary);
+}
+
+.spacer {
+  flex: 1;
+}

@@ -1,0 +1,13 @@
+<mat-toolbar color="primary">
+  <!-- Logo (left side) -->
+  <div class="logo-container">
+    <span class="app-title">BV Todo</span>
+  </div>
+
+  <span class="spacer"></span>
+
+  <!-- Logout Button (Only when logged in) -->
+  <button *ngIf="isLoggedIn" mat-button (click)="logout()">
+    <mat-icon>exit_to_app</mat-icon> Logout
+  </button>
+</mat-toolbar>

@@ -26,7 +26,7 @@
     <!-- Pending Items -->
     <mat-card-subtitle>Pending</mat-card-subtitle>
     <mat-list *ngIf="pendingTodos.length > 0; else noPending">
-      <mat-list-item *ngFor="let todo of pendingTodos">
+      <mat-list-item class="list-item" *ngFor="let todo of pendingTodos">
         <div class="item-container">
           <div class="title-container">
             <mat-checkbox
@@ -50,7 +50,7 @@
     <!-- Completed Items -->
     <mat-card-subtitle>Completed</mat-card-subtitle>
     <mat-list *ngIf="completedTodos.length > 0; else noCompleted">
-      <mat-list-item *ngFor="let todo of completedTodos">
+      <mat-list-item class="list-item" *ngFor="let todo of completedTodos">
         <div class="item-container">
           <div class="title-container">
             <mat-checkbox

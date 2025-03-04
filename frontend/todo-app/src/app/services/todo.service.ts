@@ -4,48 +4,103 @@ import {
   HttpHeaders,
   HttpErrorResponse,
 } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { NewTodoItem, TodoItem } from '../models/todo-item';
+import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TodoService {
-  private apiUrl = 'http://localhost:5014/api/todo';
+  private apiUrl = environment.apiUrl + '/todo';
 
-  constructor(private http: HttpClient) {}
+  private todosSubject = new BehaviorSubject<TodoItem[]>([]);
+
+  constructor(private http: HttpClient, private authService: AuthService) {}
+
+  // Expose the current todos state as an observable
+  get todos$(): Observable<TodoItem[]> {
+    return this.todosSubject.asObservable();
+  }
 
   // Get user todos
   getTodos(): Observable<TodoItem[]> {
     const headers = this.getAuthHeaders();
-    return this.http
-      .get<TodoItem[]>(`${this.apiUrl}/me`, { headers })
-      .pipe(catchError(this.handleError));
+    return this.http.get<TodoItem[]>(`${this.apiUrl}/me`, { headers }).pipe(
+      // Update the todoSubject with the fetched todos
+      tap((todos) => {
+        this.todosSubject.next(todos.sort((a, b) => a.id - b.id));
+      }),
+      catchError((error) => this.handleError(error))
+    );
   }
 
   // Create new todo item
   createTodo(todo: NewTodoItem): Observable<TodoItem> {
     const headers = this.getAuthHeaders();
-    return this.http
-      .post<TodoItem>(this.apiUrl, todo, { headers })
-      .pipe(catchError(this.handleError));
+
+    // Optimistically add todo
+    const currentTodos = [...this.todosSubject.value];
+    const optimisticTodo: TodoItem = { ...todo, id: 0 }; // Temporary ID
+    this.todosSubject.next([...currentTodos, optimisticTodo]);
+
+    return this.http.post<TodoItem>(this.apiUrl, todo, { headers }).pipe(
+      // On success, update the temporary todo with the real ID
+      tap((createdTodo) => {
+        const updatedTodos = this.todosSubject.value.map((t) =>
+          t.id === optimisticTodo.id
+            ? { ...createdTodo, id: createdTodo.id }
+            : t
+        );
+        this.todosSubject.next(updatedTodos);
+      }),
+      catchError((error) => {
+        // Revert on failure
+        this.todosSubject.next(currentTodos);
+        return this.handleError(error);
+      })
+    );
   }
 
   // Update existing todo item
   updateTodo(id: number, todo: TodoItem): Observable<any> {
     const headers = this.getAuthHeaders();
-    return this.http
-      .put(`${this.apiUrl}/${id}`, todo, { headers })
-      .pipe(catchError(this.handleError));
+    const currentTodos = [...this.todosSubject.value];
+    const index = currentTodos.findIndex((t) => t.id === id);
+    if (index === -1) return throwError(() => new Error('Todo not found'));
+
+    // Optimistically update
+    const updatedTodos = [...currentTodos];
+    updatedTodos[index] = { ...updatedTodos[index], ...todo };
+    this.todosSubject.next(updatedTodos);
+
+    return this.http.put(`${this.apiUrl}/${id}`, todo, { headers }).pipe(
+      catchError((error) => {
+        // Revert on failure
+        this.todosSubject.next(currentTodos);
+        return this.handleError(error);
+      })
+    );
   }
 
   // Delete todo item
   deleteTodo(id: number): Observable<any> {
     const headers = this.getAuthHeaders();
-    return this.http
-      .delete(`${this.apiUrl}/${id}`, { headers })
-      .pipe(catchError(this.handleError));
+
+    // Optimistically update
+    const currentTodos = [...this.todosSubject.value];
+    const updatedTodos = currentTodos.filter((todo) => todo.id !== id);
+    this.todosSubject.next(updatedTodos);
+
+    return this.http.delete(`${this.apiUrl}/${id}`, { headers }).pipe(
+      catchError((error) => {
+        // Revert on failure
+        this.todosSubject.next(currentTodos);
+        return this.handleError(error);
+      })
+    );
   }
 
   // Get authentication headers
@@ -57,7 +112,6 @@ export class TodoService {
   // Handle HTTP errors
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'An unexpected error occurred. Please try again later.';
-
     if (error.error instanceof ErrorEvent) {
       errorMessage =
         'A network error occurred. Please check your internet connection and try again.';
@@ -69,6 +123,7 @@ export class TodoService {
           break;
         case 401:
           errorMessage = 'Unauthorized. Please log in again.';
+          this.authService.logout();
           break;
         case 403:
           errorMessage =
@@ -83,7 +138,6 @@ export class TodoService {
           break;
       }
     }
-
-    return throwError(() => new Error(errorMessage));
+    return throwError(() => new Error(errorMessage, { cause: error.status }));
   }
 }

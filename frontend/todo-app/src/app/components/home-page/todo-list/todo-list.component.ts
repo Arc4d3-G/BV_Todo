@@ -1,3 +1,4 @@
+import { NotificationService } from './../../../services/notification.service';
 import { Component, OnInit } from '@angular/core';
 import { MatListModule } from '@angular/material/list';
 import { CommonModule } from '@angular/common';
@@ -30,58 +31,59 @@ export class TodoListComponent implements OnInit {
   todos: TodoItem[] = [];
   newTodoTitle: string = '';
 
-  constructor(private todoService: TodoService) {}
+  constructor(
+    private todoService: TodoService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
-    this.loadTodos();
-  }
+    this.todoService.todos$.subscribe((todos) => {
+      this.todos = todos;
+    });
 
-  loadTodos() {
     this.todoService.getTodos().subscribe({
-      next: (data) => (this.todos = data),
-      error: (err) => console.error(err),
+      next: () => {},
+      error: (err) => this.handleError(err),
     });
   }
 
   addTodo() {
     if (!this.newTodoTitle.trim()) return;
-
     const newTodo: NewTodoItem = {
       title: this.newTodoTitle,
       isComplete: false,
     };
-
+    this.newTodoTitle = '';
     this.todoService.createTodo(newTodo).subscribe({
-      next: (createdTodo) => {
-        this.todos.push(createdTodo);
-        this.newTodoTitle = '';
-      },
-      error: (err) => console.error(err),
+      error: (err) => this.handleError(err),
     });
   }
 
   toggleComplete(todo: TodoItem) {
     const updatedTodo = { ...todo, isComplete: !todo.isComplete };
-
     this.todoService.updateTodo(todo.id, updatedTodo).subscribe({
       next: () => (todo.isComplete = updatedTodo.isComplete),
-      error: (err) => console.error(err),
+      error: (err) => this.handleError(err),
     });
   }
 
   deleteTodo(id: number) {
     this.todoService.deleteTodo(id).subscribe({
-      next: () => (this.todos = this.todos.filter((t) => t.id !== id)),
-      error: (err) => console.error(err),
+      next: () => {},
+      error: (err) => this.handleError(err),
     });
   }
 
-  // Get filtered lists
   get pendingTodos(): TodoItem[] {
     return this.todos.filter((todo) => !todo.isComplete);
   }
 
   get completedTodos(): TodoItem[] {
     return this.todos.filter((todo) => todo.isComplete);
+  }
+
+  handleError(err: Error) {
+    console.error(err);
+    this.notificationService.showError(err.message);
   }
 }

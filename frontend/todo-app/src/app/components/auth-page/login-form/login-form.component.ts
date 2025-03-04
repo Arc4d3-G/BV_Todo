@@ -41,7 +41,6 @@ export class LoginFormComponent {
         .login(this.loginForm.value.email, this.loginForm.value.password)
         .subscribe({
           next: (response) => {
-            localStorage.setItem('token', response.token);
             this.loginSuccess.emit();
           },
           error: (err) => {

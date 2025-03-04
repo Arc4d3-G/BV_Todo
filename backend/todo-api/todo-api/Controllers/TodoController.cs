@@ -32,11 +32,6 @@ public class TodoController : ControllerBase
             Id = t.Id
         }).ToListAsync();
 
-        if (todos == null || !todos.Any())
-        {
-            return NotFound("No todos found.");
-        }
-
         return Ok(todos);
     }
 

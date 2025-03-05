@@ -3,12 +3,10 @@ using todo_api.Models;
 
 namespace todo_api.Data;
 
-public class TodoContext : DbContext
+public class TodoContext(DbContextOptions<TodoContext> options) : DbContext(options)
 {
    public DbSet<TodoItem> TodoItems { get; set; }
    public DbSet<User> Users { get; set; }
-
-   public TodoContext(DbContextOptions<TodoContext> options) : base(options) { }
 
    protected override void OnModelCreating(ModelBuilder modelBuilder)
    {

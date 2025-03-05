@@ -10,7 +10,7 @@ using todo_api.Settings;
 
 namespace todo_api.Services;
 
-public class UserService 
+public class UserService
 {
     private readonly TodoContext _context;
     private readonly JwtSettings _jwtSettings;
@@ -19,19 +19,19 @@ public class UserService
     public UserService(TodoContext context, IOptions<JwtSettings> jwtSettings, ILogger<UserService> logger)
     {
         _context = context;
-        _jwtSettings = jwtSettings.Value; 
+        _jwtSettings = jwtSettings.Value;
         _logger = logger;
 
         // Log the secret being used
         _logger.LogInformation($"JWT Secret in UserService: {_jwtSettings.Secret}");
     }
-    
+
     public string GenerateJwtToken(User user)
     {
-        var secretKey = Encoding.UTF8.GetBytes(_jwtSettings.Secret);  
-        var issuer = _jwtSettings.Issuer; 
-        var audience = _jwtSettings.Audience;  
-        var expirationMinutes = _jwtSettings.ExpirationMinutes;  
+        var secretKey = Encoding.UTF8.GetBytes(_jwtSettings.Secret);
+        var issuer = _jwtSettings.Issuer;
+        var audience = _jwtSettings.Audience;
+        var expirationMinutes = _jwtSettings.ExpirationMinutes;
 
         var signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(secretKey),
@@ -41,12 +41,12 @@ public class UserService
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new[] 
+            Subject = new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.Name, user.Username), // Add username as claim
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) // Add user ID as claim
             }),
-            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),  // Set expiration time using the settings
+            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes), // Set expiration time using the settings
             Issuer = issuer,
             Audience = audience,
             SigningCredentials = signingCredentials
@@ -61,7 +61,8 @@ public class UserService
     public async Task<User> RegisterUser(string email, string password, string username)
     {
         // Validate inputs
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(username))
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password) ||
+            string.IsNullOrWhiteSpace(username))
         {
             throw new ArgumentException("Email, password, and username must not be empty.");
         }
@@ -90,9 +91,9 @@ public class UserService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return user; 
-    } 
-    
+        return user;
+    }
+
     // Login User
     public async Task<string?> LoginUser(string email, string password)
     {
@@ -107,4 +108,10 @@ public class UserService
         return GenerateJwtToken(user);
     }
 
+    // Get User
+    public async Task<User?> GetUserById(int userId)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == userId);
+    }
 }

@@ -8,6 +8,7 @@ using todo_api.Services;
 using todo_api.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
+
 // Load environment variables from .env 
 DotEnv.Load();
 
@@ -48,13 +49,15 @@ builder.Services.AddDbContext<TodoContext>(options => options.UseSqlite(connecti
 builder.Services.AddControllers();
 builder.Services.AddScoped<UserService>();
 
-// Add CORS services
+// Load CORS & allowed origins from configuration or environment variable
+var allowedOrigins = builder.Configuration.GetValue<string>("AllowedOrigins") ?? "http://localhost:4200";
+Console.WriteLine(allowedOrigins);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200") // URL of your Angular app
+            policy.WithOrigins(allowedOrigins)
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });

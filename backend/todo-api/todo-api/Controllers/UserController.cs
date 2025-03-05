@@ -67,17 +67,31 @@ public class UserController : ControllerBase
     // GET api/user/me
     [HttpGet("me")]
     [Authorize] // Ensure the user is authenticated
-    public IActionResult GetCurrentUser()
+    public async Task<IActionResult> GetCurrentUser()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Extract user ID from claims
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Extract user ID
+        var username = User.FindFirst(ClaimTypes.Name)?.Value; // Extract username
+        
         if (userId == null)
         {
             return Unauthorized("User ID not found in token.");
         }
 
-        return Ok(new { UserId = userId });
-    }
+        if (username == null)
+        {
+            return Unauthorized("Username not found in token.");
+        }
+        
+        // Check if the user exists in the database
+        var user = await _userService.GetUserById(int.Parse(userId));
 
+        if (user == null)
+        {
+            return Unauthorized("User no longer exists.");
+        }
+
+        return Ok(new { UserId = userId, Username = username });
+    }
 
     // Request model for registration
     public class RegisterRequest

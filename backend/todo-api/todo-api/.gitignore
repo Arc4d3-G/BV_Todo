@@ -1,5 +1,0 @@
-# Env
-.env
-
-# Sqlite db
-*.db*

@@ -62,5 +62,10 @@
     <mat-error *ngIf="error">{{ error }}</mat-error>
   </div>
 
-  <button mat-stroked-button color="primary" type="submit">Register</button>
+  <button *ngIf="!loading" mat-stroked-button color="primary" type="submit">
+    Register
+  </button>
+  <div class="mat-spinner-container">
+    <mat-spinner [diameter]="50" *ngIf="loading"></mat-spinner>
+  </div>
 </form>

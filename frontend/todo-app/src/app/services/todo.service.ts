@@ -122,7 +122,7 @@ export class TodoService {
             'Bad request. Please check the data you entered and try again.';
           break;
         case 401:
-          errorMessage = 'Unauthorized. Please log in again.';
+          errorMessage = 'Session expired. Please log in again.';
           this.authService.logout();
           break;
         case 403:

@@ -8,20 +8,27 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private apiUrl = environment.apiUrl + '/user';
-  private loggedIn = new BehaviorSubject<boolean>(false);
+  private loggedInSubject = new BehaviorSubject<boolean>(false);
+  private userSubject = new BehaviorSubject<User | null>(null);
 
   constructor(private http: HttpClient, private router: Router) {}
 
-  // Expose the current todos state as an observable
+  // Expose the current todos and username state as an observable
   get isLoggedIn$(): Observable<boolean> {
-    return this.loggedIn.asObservable();
+    return this.loggedInSubject.asObservable();
   }
+
+  get user$(): Observable<User | null> {
+    return this.userSubject.asObservable();
+  }
+
   // Register a new user
   register(email: string, password: string, username: string): Observable<any> {
     return this.http
@@ -34,32 +41,40 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/login`, { email, password }).pipe(
       tap((response: any) => {
         localStorage.setItem('token', response.token);
-        this.loggedIn.next(true);
+        this.loggedInSubject.next(true);
       }),
       catchError(this.handleError)
     );
   }
 
   // Get current authenticated user
-  getCurrentUser(): Observable<any> {
+  getCurrentUser(): Observable<User | null> {
     const token = localStorage.getItem('token');
     if (!token) {
       return throwError(() => new Error('No token found'));
     }
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.get(`${this.apiUrl}/me`, { headers }).pipe(
-      tap(() => {
-        this.loggedIn.next(true);
+
+    return this.http.get<User>(`${this.apiUrl}/me`, { headers }).pipe(
+      tap((user) => {
+        console.log({ user: user });
+        this.loggedInSubject.next(true);
+        this.userSubject.next(user);
       }),
-      catchError(this.handleError)
+      catchError((err) => {
+        this.loggedInSubject.next(false);
+        this.userSubject.next(null);
+        return throwError(() => err);
+      })
     );
   }
 
   // Logout user
   logout(): void {
     localStorage.removeItem('token');
-    this.loggedIn.next(false);
+    this.loggedInSubject.next(false);
+    this.userSubject.next(null);
     this.router.navigate(['/login']);
   }
 

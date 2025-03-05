@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-todo-list',
@@ -25,9 +26,11 @@ import { MatCardModule } from '@angular/material/card';
     MatIconModule,
     FormsModule,
     MatCardModule,
+    MatProgressSpinner,
   ],
 })
 export class TodoListComponent implements OnInit {
+  loading: boolean = false;
   todos: TodoItem[] = [];
   newTodoTitle: string = '';
 
@@ -37,13 +40,20 @@ export class TodoListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.todoService.todos$.subscribe((todos) => {
-      this.todos = todos;
-    });
+    this.loading = true;
 
     this.todoService.getTodos().subscribe({
-      next: () => {},
-      error: (err) => this.handleError(err),
+      next: () => {
+        this.loading = false;
+      },
+      error: (err) => {
+        this.loading = false;
+        this.handleError(err);
+      },
+    });
+
+    this.todoService.todos$.subscribe((todos) => {
+      this.todos = todos;
     });
   }
 

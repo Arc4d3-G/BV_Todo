@@ -1,4 +1,6 @@
-<mat-card appearance="outlined">
+<mat-spinner *ngIf="loading"></mat-spinner>
+
+<mat-card *ngIf="!loading" appearance="outlined">
   <mat-card-title>To Do List</mat-card-title>
   <mat-card-content>
     <!-- Input for adding new todo items -->

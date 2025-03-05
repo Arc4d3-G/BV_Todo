@@ -13,6 +13,7 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-register-form',
@@ -22,12 +23,14 @@ import { MatCardModule } from '@angular/material/card';
     MatInputModule,
     MatCardModule,
     CommonModule,
+    MatProgressSpinner,
   ],
   templateUrl: './register-form.component.html',
   styleUrl: './register-form.component.css',
 })
 export class RegisterFormComponent {
   @Output() registrationSuccess = new EventEmitter<void>();
+  loading: boolean = false;
   registerForm: FormGroup;
   error: string | null = null;
 
@@ -87,13 +90,16 @@ export class RegisterFormComponent {
 
   onSubmit() {
     if (this.registerForm.valid) {
+      this.loading = true;
       const { email, password, username } = this.registerForm.value;
 
       this.authService.register(email, password, username).subscribe({
         next: () => {
+          this.loading = false;
           this.registrationSuccess.emit();
         },
         error: (err) => {
+          this.loading = false;
           this.error = err.message || 'Registration failed';
         },
       });

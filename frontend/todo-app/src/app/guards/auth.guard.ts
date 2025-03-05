@@ -12,10 +12,10 @@ export class AuthGuard implements CanActivate {
 
   canActivate(): Observable<boolean> {
     return this.authService.getCurrentUser().pipe(
-      map(() => true), // Token is valid
+      map(() => true),
       catchError(() => {
         this.router.navigate(['/login']);
-        return of(false); // Token is invalid or request failed
+        return of(false);
       })
     );
   }

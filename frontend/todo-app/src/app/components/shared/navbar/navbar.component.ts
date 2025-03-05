@@ -13,6 +13,7 @@ import { MatIcon } from '@angular/material/icon';
 })
 export class NavbarComponent {
   isLoggedIn = false;
+  username: string = '';
 
   constructor(private authService: AuthService) {}
 
@@ -20,9 +21,14 @@ export class NavbarComponent {
     this.authService.isLoggedIn$.subscribe((status) => {
       this.isLoggedIn = status;
     });
+
+    this.authService.user$.subscribe((user) => {
+      this.username = user ? user.username : '';
+    });
   }
 
   logout() {
+    this.username = '';
     this.authService.logout();
   }
 }
